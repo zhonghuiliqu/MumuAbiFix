@@ -39,3 +39,6 @@ MuMu 模拟器更新后，公主连结被误用 x86 启动导致卡顿。本工�
 - `adb-fix.bat` + `fix_edit.ps1`：Windows 上的 adb 一键脚本（定点修改）。
 - `abi-select-android12.config` / `abi-select-v2.config`：修复后的参考配置。
 - `.github/workflows/build.yml`：GitHub Actions 云端自动打 APK（含签名 release，密钥存 GitHub Secrets）。
+
+---
+CI: 每次 push 会自动构建签名 release APK。
