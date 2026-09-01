@@ -25,36 +25,12 @@ jobs:
           sdkmanager "platforms;android-34" "build-tools;34.0.0" >/dev/null 2>&1 || true
           echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      # secrets 不能在 if: 里直接引用，所以先在 env 里读出来，再写 HAS_KEY 标记
-      - name: Decode release keystore
-        env:
-          KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
-        run: |
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > release.keystore
-            echo "HAS_KEY=1" >> "$GITHUB_ENV"
-            echo "keystore decoded"
-          else
-            echo "no keystore secret; will build debug"
-          fi
-
       - name: Build signed RELEASE APK
-        if: env.HAS_KEY == '1'
-        env:
-          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: chmod +x gradlew && ./gradlew assembleRelease
-
-      - name: Build debug APK (no keystore secret)
-        if: env.HAS_KEY != '1'
-        run: chmod +x gradlew && ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: MumuAbiFix-apk
-          path: |
-            app/build/outputs/apk/release/app-release.apk
-            app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: warn
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
