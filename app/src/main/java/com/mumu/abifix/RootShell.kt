@@ -5,41 +5,42 @@ import java.io.InputStream
 import java.lang.Exception
 
 /**
- * 通过 su 实现 root 的薄封装。不依赖第三方库（无需 libsu/JitPack），
- * 在已 root 的设备上工作（Magisk / SuperSU / MuMu 内置 root 均支持 su -c）。
+ * 通过 su 实现 root 的薄封装。依次尝试常见 su 路径（含 KernelSU / Magisk），
+ * 哪个能用就用哪个。不依赖第三方库。
  */
 object RootShell {
 
-    /**
-     * 探测 root 是否可用（会触发 root 管理器授权弹窗）。
-     * @return true 表示拿到了 uid=0。
-     */
+    // 常见 su 路径，优先用普通 su；找不到再尝试 KernelSU 等
+    private val suList = arrayOf(
+        "su",
+        "/data/adb/ksu/bin/su",
+        "/system/bin/su",
+        "/system/xbin/su",
+        "/sbin/su"
+    )
+
+    /** 探测 root 是否可用（会触发 root 管理器授权）。@return true 表示拿到 uid=0。 */
     fun requestRoot(): Boolean {
-        val (out, _) = exec(arrayOf("su", "-c", "id"))
+        val (out, _) = run("id")
         return out.contains("uid=0")
     }
 
-    /**
-     * 以 root 执行 shell 命令字符串，返回（结果文本, 退出码）。
-     * 用 su -c 传入，多个命令可用 ; 或 && 拼接。
-     */
+    /** 以 root 执行 shell 命令字符串，返回（结果文本, 退出码）。 */
     fun run(command: String): Pair<String, Int> {
-        return exec(arrayOf("su", "-c", command))
-    }
-
-    private fun exec(cmd: Array<String>): Pair<String, Int> {
-        var process: Process? = null
-        return try {
-            process = Runtime.getRuntime().exec(cmd)
-            val out = read(process.inputStream)
-            val err = read(process.errorStream)
-            val code = process.waitFor()
-            ("$out\n$err").trim() to code
-        } catch (e: Exception) {
-            ("io-error: " + (e.message ?: e.toString())) to -1
-        } finally {
-            process?.destroy()
+        for (s in suList) {
+            var process: Process? = null
+            try {
+                process = Runtime.getRuntime().exec(arrayOf(s, "-c", command))
+                val out = read(process.inputStream)
+                val err = read(process.errorStream)
+                val code = process.waitFor()
+                return ("$out\n$err").trim() to code
+            } catch (e: Exception) {
+                // 此路径下找不到 su，尝试下一个
+                process?.destroy()
+            }
         }
+        return "no su binary found" to -1
     }
 
     private fun read(stream: InputStream): String {
