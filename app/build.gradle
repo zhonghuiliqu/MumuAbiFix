@@ -15,17 +15,18 @@ android {
         versionName "1.0"
     }
 
-    // 签名参数：优先从环境变量读取（CI 由 GitHub Secrets 注入），本地构建回退到默认值
-    def storePass = System.getenv("RELEASE_KEYSTORE_PASSWORD") ?: "abifix123"
-    def keyPass   = System.getenv("RELEASE_KEY_PASSWORD") ?: "abifix123"
-    def keyAlias  = System.getenv("RELEASE_KEY_ALIAS") ?: "abifix"
+    // 签名参数：优先从环境变量读取（CI 由 GitHub Secrets 注入），本地构建回退到默认值。
+    // 注意：变量名不能和 DSL 方法名(storePassword/keyAlias/keyPassword)重名，否则 Groovy 报错。
+    def storePwd   = System.getenv("RELEASE_KEYSTORE_PASSWORD") ?: "abifix123"
+    def keyPwd     = System.getenv("RELEASE_KEY_PASSWORD") ?: "abifix123"
+    def aliasName  = System.getenv("RELEASE_KEY_ALIAS") ?: "abifix"
 
     signingConfigs {
         release {
             storeFile rootProject.file("release.keystore")
-            storePassword storePass
-            keyAlias keyAlias
-            keyPassword keyPass
+            storePassword storePwd
+            keyAlias aliasName
+            keyPassword keyPwd
         }
     }
 
