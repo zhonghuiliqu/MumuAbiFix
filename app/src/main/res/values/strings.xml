@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MuMu ABI 修复</string>
+    <string name="title">公主连结 ABI 定点修复</string>
+    <string name="btn_apply">定点修复（备份原件）</string>
+    <string name="btn_restore">还原备份</string>
+    <string name="btn_reapply">重新修复</string>
+    <string name="btn_clear">清空日志</string>
+</resources>

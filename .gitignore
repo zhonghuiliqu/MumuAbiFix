@@ -1,0 +1,24 @@
+# Build outputs
+.gradle/
+build/
+app/build/
+*.apk
+
+# Local config / secrets
+local.properties
+release.keystore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Crash logs / temp
+hs_err_pid*.log
+*.log
+
+# Distribution package (kept out of repo; rebuild via CI/local)
+dist/
+MumuAbiFix-share.zip
+*.zip
